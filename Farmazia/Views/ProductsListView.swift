@@ -1,50 +1,35 @@
 import SwiftUI
 
 struct ProductListView: View {
-  let category: ProductCategory?
-  @State private var products: [ProductModel] = MockData.products
-  @State private var sortOrder: SortOrder = .dateDescending
-  
-  var filteredAndSortedProducts: [ProductModel] {
-    var result = products
-    
-    if let category = category {
-      result = result.filter { $0.productType == category }
-    }
-    
-    switch sortOrder {
-    case .priceAscending:
-      result.sort { $0.price < $1.price }
-    case .priceDescending:
-      result.sort { $0.price > $1.price }
-    case .dateAscending:
-      result.sort { $0.id < $1.id }
-    case .dateDescending:
-      result.sort { $0.id > $1.id }
-    }
-    
-    return result
+  @StateObject private var viewModel: ProductListViewModel
+
+  init(viewModel: @autoclosure @escaping () -> ProductListViewModel) {
+    self._viewModel = StateObject(wrappedValue: viewModel())
   }
 
   var body: some View {
     VStack {
-      FilterBarView(sortOrder: $sortOrder)
+      FilterBarView(sortOrder: $viewModel.sortOrder)
         .padding(.horizontal)
 
       ScrollView {
         LazyVStack(spacing: 16) {
-          ForEach(filteredAndSortedProducts, id: \.id) { product in
+          ForEach(viewModel.filteredAndSortedProducts, id: \.id) { product in
             NavigationLink(value: product) {
               ProductCardView(product: product) {
                 print("Added \(product.name) to cart")
               }
             }
+            .buttonStyle(PlainButtonStyle())
           }
         }
         .padding()
       }
     }
-    .navigationTitle(category?.rawValue.capitalized ?? "All Products")
+    .navigationTitle(viewModel.category?.description ?? "All Products")
+    .task {
+      await viewModel.fetchProducts()
+    }
   }
 }
 

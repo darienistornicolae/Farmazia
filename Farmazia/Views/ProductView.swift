@@ -1,108 +1,104 @@
 import SwiftUI
 
 struct ProductView: View {
-  let product: ProductModel
-  @State private var quantity: Int = 1
+  @StateObject var viewModel: ProductViewModel
 
   var body: some View {
-    VStack(spacing: 0) {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 16) {
-          AsyncImage(url: URL(string: product.image ?? "")) { image in
-            image.resizable().aspectRatio(contentMode: .fit)
-          } placeholder: {
-            Color.gray
+    ScrollView {
+      VStack(alignment: .leading, spacing: 16) {
+        AsyncImage(url: URL(string: viewModel.product.image ?? "")) { image in
+          image.resizable().aspectRatio(contentMode: .fit)
+        } placeholder: {
+          Color.gray
+        }
+        .frame(height: 300)
+        
+        Text(viewModel.product.name)
+          .font(.title)
+          .fontWeight(.bold)
+        
+        Text(viewModel.product.description)
+          .font(.body)
+        
+        HStack {
+          Text("Price: $\(String(format: "%.2f", viewModel.product.price))")
+            .font(.headline)
+          
+          Spacer()
+          
+          Text("Available: \(viewModel.product.quantity) \(viewModel.product.unit.rawValue)")
+            .font(.subheadline)
+        }
+        
+        HStack {
+          if viewModel.product.isOrganic {
+            Text("Organic")
+              .font(.caption)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 4)
+              .background(Color.green.opacity(0.2))
+              .cornerRadius(4)
           }
-          .frame(height: 300)
-
-          Text(product.name)
-            .font(.title)
-            .fontWeight(.bold)
-
-          Text(product.description)
-            .font(.body)
-
-          HStack {
-            Text("Price: $\(String(format: "%.2f", product.price))")
-              .font(.headline)
-
-            Spacer()
-
-            Text("Available: \(product.quantity) \(product.unit.rawValue)")
-              .font(.subheadline)
-          }
-
-          HStack {
-            if product.isOrganic {
-              Text("Organic")
-                .font(.caption)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.green.opacity(0.2))
-                .cornerRadius(4)
-            }
-            Spacer()
-            CustomStepper(value: $quantity, range: 1...product.quantity)
-          }
-          Divider()
-
+          
+          Spacer()
+          
+          CustomStepper(value: $viewModel.quantity, range: 1...viewModel.product.quantity)
+        }
+        if let seller = viewModel.seller {
           VStack(alignment: .leading, spacing: 8) {
             Text("Seller Information")
               .font(.headline)
-
-            Text(product.seller.fullName)
+            
+            Text(seller.fullName)
               .font(.subheadline)
-
-            Text(product.seller.contactInformation.email)
+            
+            Text(seller.contactInformation.email)
               .font(.caption)
-
-            Text(product.seller.contactInformation.phoneNumber)
+            
+            Text(seller.contactInformation.phoneNumber)
               .font(.caption)
-
-            Text(product.seller.contactInformation.addressInformation.address)
+            
+            Text(seller.contactInformation.addressInformation.address)
               .font(.caption)
-
-            Text("\(product.seller.contactInformation.addressInformation.city), \(product.seller.contactInformation.addressInformation.county)")
+            
+            Text("\(seller.contactInformation.addressInformation.city), \(seller.contactInformation.addressInformation.county)")
               .font(.caption)
-
-            Text("Seller Rating: \(String(format: "%.1f", product.seller.rating))")
+            
+            Text("Seller Rating: \(String(format: "%.1f", seller.rating))")
               .font(.caption)
               .fontWeight(.bold)
           }
         }
-        .padding()
-      }
-
-      Button(action: {
-        print("Added \(quantity) \(product.name) to cart")
-      }) {
-        Text("Add to Cart")
-          .fontWeight(.semibold)
-          .foregroundColor(.white)
-          .padding()
-          .frame(maxWidth: .infinity)
-          .background(product.isOutOfStock ? Color.gray : Color.green)
-          .cornerRadius(8)
-      }
-      .disabled(product.isOutOfStock)
-      .padding()
-      .background(Color.white)
-      .shadow(radius: 2)
-    }
-    .navigationTitle("Product Details")
-    .navigationBarTitleDisplayMode(.inline)
-  }
-}
+        Button(action: viewModel.addToCart) {
+                            Text("Add to Cart")
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(viewModel.product.isOutOfStock ? Color.gray : Color.green)
+                                .cornerRadius(8)
+                        }
+                        .disabled(viewModel.product.isOutOfStock)
+                    }
+                    .padding()
+                }
+                .navigationTitle("Product Details")
+                .navigationBarTitleDisplayMode(.inline)
+                .task {
+                    await viewModel.fetchSellerInfo()
+                }
+            }
+        }
 
 struct CustomStepper: View {
   @Binding var value: Int
   let range: ClosedRange<Int>
-
+  
   var body: some View {
     ZStack {
       RoundedRectangle(cornerRadius: 8)
         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-
+      
       HStack(spacing: 0) {
         Button(action: decrement) {
           Text("-")
@@ -111,17 +107,17 @@ struct CustomStepper: View {
             .padding(.vertical, 8)
         }
         .foregroundStyle(.green)
-
+        
         Divider()
-
+        
         Text("\(value)")
           .font(.headline)
           .padding(.horizontal, 12)
           .padding(.vertical, 8)
           .frame(minWidth: 40)
-
+        
         Divider()
-
+        
         Button(action: increment) {
           Text("+")
             .font(.headline)
@@ -133,13 +129,13 @@ struct CustomStepper: View {
     }
     .fixedSize(horizontal: true, vertical: true)
   }
-
+  
   private func increment() {
     if value < range.upperBound {
       value += 1
     }
   }
-
+  
   private func decrement() {
     if value > range.lowerBound {
       value -= 1
@@ -147,8 +143,3 @@ struct CustomStepper: View {
   }
 }
 
-#Preview {
-  NavigationView {
-    ProductView(product: MockData.products.first!)
-  }
-}

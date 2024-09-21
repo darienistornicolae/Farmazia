@@ -4,12 +4,13 @@ import UIKit
 struct AdaptiveContentView: View {
   @Environment(\.horizontalSizeClass) var horizontalSizeClass
   @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
+  let container: DependencyContainer
 
   var body: some View {
     if horizontalSizeClass == .compact {
-      TabBarController()
+      TabBarController(container: container)
     } else {
-      SidebarView(columnVisibility: $columnVisibility)
+      SidebarView(columnVisibility: $columnVisibility, container: container)
     }
   }
 }
@@ -33,14 +34,14 @@ enum SidebarItem: String, CaseIterable, Identifiable {
   }
 
   @MainActor @ViewBuilder
-  var destination: some View {
+  func destination(container: DependencyContainer) -> some View {
     switch self {
     case .search:
-      CategoryListView()
+      CategoryListView(viewModel: container.makeCategoryListViewModel())
     case .shoppingCart:
       ShoppingCartView()
     case .profile:
-      ProfileView()
+      ProfileView(viewModel: container.makeAuthenticationViewModel())
     }
   }
 }
@@ -49,6 +50,7 @@ struct SidebarView: View {
   @State private var selection: SidebarItem? = .search
   @Binding var columnVisibility: NavigationSplitViewVisibility
   @Environment(\.horizontalSizeClass) var horizontalSizeClass
+  let container: DependencyContainer
 
   var body: some View {
     NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -60,7 +62,7 @@ struct SidebarView: View {
       .navigationTitle("Menu")
     } detail: {
       if let selectedItem = selection {
-        selectedItem.destination
+        selectedItem.destination(container: container)
       } else {
         Text("Select an item from the sidebar")
       }
@@ -80,8 +82,4 @@ struct SidebarView: View {
       }
     }
   }
-}
-
-#Preview {
-  SidebarView(columnVisibility: .constant(.automatic))
 }

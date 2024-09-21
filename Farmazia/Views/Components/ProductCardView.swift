@@ -19,41 +19,27 @@ struct ProductCardView: View {
           .font(.headline)
           .lineLimit(1)
 
-        Text(product.seller.fullName)
+        Text("$\(String(format: "%.2f", product.price))")
           .font(.subheadline)
-          .foregroundColor(.secondary)
 
         HStack {
-          Text(product.productType.rawValue.capitalized)
+          Text(product.isOutOfStock ? "Out of Stock" : "In Stock")
             .font(.caption)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Color.blue.opacity(0.1))
-            .foregroundColor(.blue)
-            .cornerRadius(4)
+            .foregroundColor(product.isOutOfStock ? .red : .green)
 
           if product.isOrganic {
             Text("Organic")
               .font(.caption)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
-              .background(Color.green.opacity(0.1))
-              .foregroundColor(.green)
+              .background(Color.green.opacity(0.2))
               .cornerRadius(4)
           }
         }
 
-        HStack {
-          Text("$\(String(format: "%.2f", product.price))")
-            .font(.title3)
-            .fontWeight(.bold)
-
-          Spacer()
-
-          Text(product.isOutOfStock ? "Out of Stock" : "In Stock")
-            .font(.caption)
-            .foregroundColor(product.isOutOfStock ? .red : .green)
-        }
+        Text(product.productType.description)
+          .font(.caption)
+          .foregroundColor(.blue)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
 
