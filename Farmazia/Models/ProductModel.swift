@@ -7,7 +7,7 @@ struct AddressModel: Codable {
   var postalCode: String
 }
 
-struct ProductModel: Codable {
+struct ProductModel: Codable, Hashable {
   var id: String
   var name: String
   var image: String?
@@ -19,6 +19,15 @@ struct ProductModel: Codable {
   var unit: UnitType
   var isOrganic: Bool
   var isOutOfStock: Bool
+  
+  func hash(into hasher: inout Hasher) {
+      hasher.combine(id)
+  }
+
+  // Implement == operator if it's not already defined
+  static func == (lhs: ProductModel, rhs: ProductModel) -> Bool {
+      lhs.id == rhs.id
+  }
 }
 
 enum ProductCategory: String, Codable, CaseIterable {

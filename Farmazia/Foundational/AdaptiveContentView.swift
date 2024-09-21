@@ -15,21 +15,18 @@ struct AdaptiveContentView: View {
 }
 
 enum SidebarItem: String, CaseIterable, Identifiable {
-  case vatServices = "VAT Services"
-  case invoices = "Invoices"
-  case customers = "Customers"
+  case search = "Search"
+  case shoppingCart = "Cart"
   case profile = "Profile"
 
   var id: String { self.rawValue }
 
   var label: some View {
     switch self {
-    case .vatServices:
-      return Label("VAT Services", systemImage: "plus.forwardslash.minus")
-    case .invoices:
-      return Label("Invoices", systemImage: "list.bullet.clipboard")
-    case .customers:
-      return Label("Customers", systemImage: "person.2.fill")
+    case .search:
+      return Label("Search", systemImage: "doc.text.magnifyingglass")
+    case .shoppingCart:
+      return Label("Cart", systemImage: "cart")
     case .profile:
       return Label("Profile", systemImage: "person.fill")
     }
@@ -38,11 +35,9 @@ enum SidebarItem: String, CaseIterable, Identifiable {
   @MainActor @ViewBuilder
   var destination: some View {
     switch self {
-    case .vatServices:
-      SettingsView()
-    case .invoices:
-      ProductListView(products: MockData.products)
-    case .customers:
+    case .search:
+      CategoryListView()
+    case .shoppingCart:
       ShoppingCartView()
     case .profile:
       ProfileView()
@@ -51,7 +46,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 }
 
 struct SidebarView: View {
-  @State private var selection: SidebarItem? = .vatServices
+  @State private var selection: SidebarItem? = .search
   @Binding var columnVisibility: NavigationSplitViewVisibility
   @Environment(\.horizontalSizeClass) var horizontalSizeClass
 

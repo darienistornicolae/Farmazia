@@ -8,19 +8,14 @@ struct TabBarController: View {
 
   var body: some View {
     TabView {
-      SettingsView()
+      CategoryListView()
         .tabItem {
-          Label("VAT Services", systemImage: "plus.forwardslash.minus")
-        }
-
-      ProductListView(products: MockData.products)
-        .tabItem {
-          Label("Invoices", systemImage: "list.bullet.clipboard")
+          Label("Search", systemImage: "doc.text.magnifyingglass")
         }
 
       ShoppingCartView()
         .tabItem {
-          Label("Customers", systemImage: "person.2.fill")
+          Label("Cart", systemImage: "cart")
         }
 
       ProfileView()
