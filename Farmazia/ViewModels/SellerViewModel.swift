@@ -6,6 +6,7 @@ class SellerViewModel: ObservableObject {
   @Published var errorMessage: String?
   @Published var products: [ProductModel] = []
   @Published var hasProducts: Bool = false
+  @Published var farmCreated: Bool = false
 
   private let sellerService: SellerServiceProtocol
   private let authManager: AuthenticationManagerProtocol
@@ -43,33 +44,26 @@ class SellerViewModel: ObservableObject {
       errorMessage = "No authenticated user found"
       return
     }
-    
+
     do {
-      if var existingSeller = seller {
-        existingSeller.farmName = farmName
-        existingSeller.farmDescription = farmDescription
-        existingSeller.contactInformation.addressInformation = addressInfo
-        try await sellerService.updateSeller(existingSeller)
-        seller = existingSeller
-      } else {
-        let newSeller = SellerModel(
-          id: userId,
-          fullName: authManager.currentUser?.displayName ?? "",
-          contactInformation: ContactModel(
-            email: authManager.currentUser?.email ?? "",
-            phoneNumber: "",
-            addressInformation: addressInfo
-          ),
-          farmName: farmName,
-          farmDescription: farmDescription,
-          products: [],
-          rating: 0.0
-        )
-        try await sellerService.createSeller(newSeller)
-        seller = newSeller
-      }
+      let newSeller = SellerModel(
+        id: userId,
+        fullName: authManager.currentUser?.displayName ?? "",
+        contactInformation: ContactModel(
+          email: authManager.currentUser?.email ?? "",
+          phoneNumber: "",
+          addressInformation: addressInfo
+        ),
+        farmName: farmName,
+        farmDescription: farmDescription,
+        products: [],
+        rating: 0.0
+      )
+      try await sellerService.createSeller(newSeller)
+      seller = newSeller
+      farmCreated = true
     } catch {
-      errorMessage = "Failed to create/update farm: \(error.localizedDescription)"
+      errorMessage = "Failed to create farm: \(error.localizedDescription)"
     }
   }
   

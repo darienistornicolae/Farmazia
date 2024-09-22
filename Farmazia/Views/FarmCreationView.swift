@@ -35,11 +35,15 @@ struct FarmCreationView: View {
       }
     }
     .navigationTitle("Create Your Farm")
+    .onChange(of: viewModel.farmCreated) { created in
+      if created {
+        dismiss()
+      }
+    }
   }
 
   func saveFarm() async {
     let addressInfo = AddressModel(city: city, county: county, address: address, postalCode: postalCode)
     await viewModel.createOrUpdateFarm(farmName: farmName, farmDescription: farmDescription, addressInfo: addressInfo)
-    dismiss()
   }
 }
