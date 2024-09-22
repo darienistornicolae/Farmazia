@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FarmCreationView: View {
   @ObservedObject var viewModel: SellerViewModel
-  @Environment(\.presentationMode) var presentationMode
+  @Environment(\.dismiss) var dismiss
 
   @State private var farmName: String = ""
   @State private var farmDescription: String = ""
@@ -40,6 +40,6 @@ struct FarmCreationView: View {
   func saveFarm() async {
     let addressInfo = AddressModel(city: city, county: county, address: address, postalCode: postalCode)
     await viewModel.createOrUpdateFarm(farmName: farmName, farmDescription: farmDescription, addressInfo: addressInfo)
-    presentationMode.wrappedValue.dismiss()
+    dismiss()
   }
 }
