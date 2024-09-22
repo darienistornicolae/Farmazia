@@ -2,12 +2,11 @@ import SwiftUI
 
 struct FarmProductsView: View {
   @ObservedObject var viewModel: SellerViewModel
-  @Environment(\.dismiss) var dismiss
   @State private var showingProductForm = false
   @State private var productToEdit: ProductModel?
   @State private var searchText = ""
   @State private var selectedCategory: ProductCategory?
-  @State private var shouldDismissProductForm = false
+  @Environment(\.dismiss) var dismiss
 
   private var filteredProducts: [ProductModel] {
     viewModel.products.filter { product in
@@ -18,25 +17,26 @@ struct FarmProductsView: View {
 
   var body: some View {
     NavigationStack {
-      VStack {
+      VStack(spacing: 0) {
         categoryFilterView
 
         ScrollView {
           LazyVStack(spacing: 16) {
             ForEach(filteredProducts) { product in
-              ProductCardView(product: product) {
-                editProduct(product)
-              }
-              .contextMenu {
-                Button(action: { editProduct(product) }) {
-                  Label("Edit", systemImage: "pencil")
+              FarmProductCardView(product: product)
+                .onTapGesture {
+                  editProduct(product)
                 }
-                Button(role: .destructive) {
-                  deleteProduct(product)
-                } label: {
-                  Label("Delete", systemImage: "trash")
+                .contextMenu {
+                  Button(action: { editProduct(product) }) {
+                    Label("Edit", systemImage: "pencil")
+                  }
+                  Button(role: .destructive) {
+                    deleteProduct(product)
+                  } label: {
+                    Label("Delete", systemImage: "trash")
+                  }
                 }
-              }
             }
           }
           .padding()
@@ -50,8 +50,7 @@ struct FarmProductsView: View {
         }
         ToolbarItem(placement: .navigationBarTrailing) {
           Button(action: {
-            productToEdit = nil
-            showingProductForm = true
+            addNewProduct()
           }) {
             Image(systemName: "plus")
           }
@@ -62,13 +61,11 @@ struct FarmProductsView: View {
           sellerViewModel: viewModel,
           storageManager: DependencyContainer().storageManager,
           existingProduct: productToEdit,
-          shouldDismiss: $shouldDismissProductForm
+          shouldDismiss: $showingProductForm
         )
       }
-      .onChange(of: shouldDismissProductForm) { newValue in
-        if newValue {
-          showingProductForm = false
-          shouldDismissProductForm = false
+      .onChange(of: showingProductForm) { isPresented in
+        if !isPresented {
           productToEdit = nil
           Task {
             await viewModel.loadSellerProducts()
@@ -118,7 +115,7 @@ private extension FarmProductsView {
     .padding(.vertical, 8)
     .background(Color.gray.opacity(0.1))
   }
-  
+
   func deleteProduct(_ product: ProductModel) {
     Task {
       if let productId = product.id {
@@ -126,9 +123,14 @@ private extension FarmProductsView {
       }
     }
   }
-  
+
   func editProduct(_ product: ProductModel) {
     productToEdit = product
+    showingProductForm = true
+  }
+
+  func addNewProduct() {
+    productToEdit = nil
     showingProductForm = true
   }
 }

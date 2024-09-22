@@ -17,6 +17,8 @@ class CreateProductViewModel: ObservableObject {
   private let sellerViewModel: SellerViewModel
   private let storageManager: FirebaseStorageManagerProtocol
   let existingProduct: ProductModel?
+  var imageUrl: String?
+  var isEditMode: Bool { existingProduct != nil }
 
   init(sellerViewModel: SellerViewModel, storageManager: FirebaseStorageManagerProtocol, existingProduct: ProductModel? = nil) {
     self.sellerViewModel = sellerViewModel
@@ -35,10 +37,6 @@ class CreateProductViewModel: ObservableObject {
     }
   }
 
-  var isEditMode: Bool {
-    existingProduct != nil
-  }
-
   func saveProduct() async -> Bool {
     guard let priceValue = Double(price),
           let quantityValue = Int(quantity) else {
@@ -46,7 +44,6 @@ class CreateProductViewModel: ObservableObject {
       return false
     }
 
-    var imageUrl: String?
     if let image = selectedImage {
       do {
         let imagePath = "product_images/\(UUID().uuidString).jpg"
@@ -75,9 +72,12 @@ class CreateProductViewModel: ObservableObject {
       if isEditMode {
         await sellerViewModel.updateProduct(product)
       } else {
-        await sellerViewModel.addProduct(product)
+        try await sellerViewModel.addProduct(product)
       }
       return true
+    } catch {
+      errorMessage = "Failed to \(isEditMode ? "update" : "add") product: \(error.localizedDescription)"
+      return false
     }
   }
 }

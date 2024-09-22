@@ -6,105 +6,93 @@ struct CreateProductView: View {
   @Environment(\.presentationMode) var presentationMode
   @Binding var shouldDismiss: Bool
   @State private var showingImagePicker = false
-
-  init(
-    sellerViewModel: SellerViewModel,
-    storageManager: FirebaseStorageManagerProtocol,
-    existingProduct: ProductModel? = nil,
-    shouldDismiss: Binding<Bool>
-  ) {
-    self._viewModel = StateObject(
-      wrappedValue: CreateProductViewModel(
-        sellerViewModel: sellerViewModel,
-        storageManager: storageManager,
-        existingProduct: existingProduct
-      )
-    )
-    self._shouldDismiss = shouldDismiss
+  
+  init(sellerViewModel: SellerViewModel, storageManager: FirebaseStorageManagerProtocol, existingProduct: ProductModel?, shouldDismiss: Binding<Bool>) {
+      self._viewModel = StateObject(wrappedValue: CreateProductViewModel(sellerViewModel: sellerViewModel, storageManager: storageManager, existingProduct: existingProduct))
+      self._shouldDismiss = shouldDismiss
   }
 
-  var body: some View {
-    NavigationView {
-      Form {
-        Section(header: Text("Product Image")) {
-          if let image = viewModel.selectedImage {
-            Image(uiImage: image)
-              .resizable()
-              .scaledToFit()
-              .frame(height: 200)
-          } else if let imageUrl = viewModel.existingProduct?.image {
-            AsyncImage(url: URL(string: imageUrl)) { image in
-              image.resizable().scaledToFit()
-            } placeholder: {
-              ProgressView()
-            }
-            .frame(height: 200)
-          }
-          Button(action: {
-            showingImagePicker = true
-          }) {
-            Text(viewModel.selectedImage == nil ? "Select Image" : "Change Image")
-          }
-        }
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Product Image")) {
+                    if let image = viewModel.selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 200)
+                    } else if let imageUrl = viewModel.existingProduct?.image {
+                        AsyncImage(url: URL(string: imageUrl)) { image in
+                            image.resizable().scaledToFit()
+                        } placeholder: {
+                            ProgressView()
+                        }
+                        .frame(height: 200)
+                    }
+                    Button(action: {
+                        showingImagePicker = true
+                    }) {
+                        Text(viewModel.selectedImage == nil ? "Select Image" : "Change Image")
+                    }
+                }
 
-        Section(header: Text("Product Details")) {
-          TextField("Name", text: $viewModel.name)
-          TextEditor(text: $viewModel.description)
-            .frame(height: 100)
-          TextField("Price", text: $viewModel.price)
-            .keyboardType(.decimalPad)
-          TextField("Quantity", text: $viewModel.quantity)
-            .keyboardType(.numberPad)
-        }
+                Section(header: Text("Product Details")) {
+                    TextField("Name", text: $viewModel.name)
+                    TextEditor(text: $viewModel.description)
+                        .frame(height: 100)
+                    TextField("Price", text: $viewModel.price)
+                        .keyboardType(.decimalPad)
+                    TextField("Quantity", text: $viewModel.quantity)
+                        .keyboardType(.numberPad)
+                }
 
-        Section(header: Text("Category")) {
-          Picker("Category", selection: $viewModel.selectedCategory) {
-            ForEach(ProductCategory.allCases, id: \.self) { category in
-              Text(category.description).tag(category)
+                Section(header: Text("Category")) {
+                    Picker("Category", selection: $viewModel.selectedCategory) {
+                        ForEach(ProductCategory.allCases, id: \.self) { category in
+                            Text(category.description).tag(category)
+                        }
+                    }
+                }
+                
+                Section(header: Text("Unit")) {
+                    Picker("Unit", selection: $viewModel.selectedUnit) {
+                        ForEach(UnitType.allCases, id: \.self) { unit in
+                            Text(unit.rawValue).tag(unit)
+                        }
+                    }
+                }
+                
+                Section {
+                    Toggle("Organic", isOn: $viewModel.isOrganic)
+                    Toggle("Out of Stock", isOn: $viewModel.isOutOfStock)
+                }
             }
-          }
-        }
-
-        Section(header: Text("Unit")) {
-          Picker("Unit", selection: $viewModel.selectedUnit) {
-            ForEach(UnitType.allCases, id: \.self) { unit in
-              Text(unit.rawValue).tag(unit)
+            .navigationTitle(viewModel.isEditMode ? "Edit Product" : "Add New Product")
+            .toolbar {
+              ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                  shouldDismiss = true
+                  presentationMode.wrappedValue.dismiss()
+                }
+              }
+              ToolbarItem(placement: .confirmationAction) {
+                Button(viewModel.isEditMode ? "Save" : "Add") {
+                  saveProduct()
+                }
+              }
             }
-          }
-        }
-
-        Section {
-          Toggle("Organic", isOn: $viewModel.isOrganic)
-          Toggle("Out of Stock", isOn: $viewModel.isOutOfStock)
-        }
-      }
-      .navigationTitle(viewModel.isEditMode ? "Edit Product" : "Add New Product")
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
-          if viewModel.isEditMode {
-            Button("Cancel") {
-              presentationMode.wrappedValue.dismiss()
+            .alert(item: Binding<AlertItem?>(
+              get: { viewModel.errorMessage.map { AlertItem(message: $0) } },
+              set: { _ in viewModel.errorMessage = nil }
+            )) { alertItem in
+              Alert(title: Text("Error"), message: Text(alertItem.message))
             }
-          }
+            .sheet(isPresented: $showingImagePicker) {
+              ImagePicker(image: $viewModel.selectedImage)
+            }
         }
-        ToolbarItem(placement: .confirmationAction) {
-          Button(viewModel.isEditMode ? "Save" : "Add") {
-            saveProduct()
-          }
-        }
-      }
-      .alert(item: Binding<AlertItem?>(
-        get: { viewModel.errorMessage.map { AlertItem(message: $0) } },
-        set: { _ in viewModel.errorMessage = nil }
-      )) { alertItem in
-        Alert(title: Text("Error"), message: Text(alertItem.message))
-      }
-      .sheet(isPresented: $showingImagePicker) {
-        ImagePicker(image: $viewModel.selectedImage)
-      }
     }
-  }
-
+  
   private func saveProduct() {
     Task {
       if await viewModel.saveProduct() {

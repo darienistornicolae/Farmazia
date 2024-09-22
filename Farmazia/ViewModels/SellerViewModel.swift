@@ -91,22 +91,11 @@ class SellerViewModel: ObservableObject {
     }
   }
   
-  func addProduct(_ product: ProductModel) async {
-    do {
+  func addProduct(_ product: ProductModel) async throws {
       let productId = try await productService.addProduct(product)
-      var updatedProduct = product
-      updatedProduct.id = productId
-      products.append(updatedProduct)
-      hasProducts = true
-
-      if var updatedSeller = seller {
-        updatedSeller.products.append(updatedProduct)
-        try await sellerService.updateSeller(updatedSeller)
-        seller = updatedSeller
-      }
-    } catch {
-      errorMessage = "Failed to add product: \(error.localizedDescription)"
-    }
+      var newProduct = product
+      newProduct.id = productId
+      products.append(newProduct)
   }
 
   func moveProduct(from source: IndexSet, to destination: Int) {
@@ -114,39 +103,23 @@ class SellerViewModel: ObservableObject {
   }
 
   func updateProduct(_ product: ProductModel) async {
-    do {
-      try await productService.updateProduct(product)
-
-      if let index = products.firstIndex(where: { $0.id == product.id }) {
-        products[index] = product
+      do {
+          try await productService.updateProduct(product)
+          if let index = products.firstIndex(where: { $0.id == product.id }) {
+              products[index] = product
+          }
+      } catch {
+          errorMessage = "Error updating product: \(error.localizedDescription)"
       }
-
-      if var updatedSeller = seller {
-        if let index = updatedSeller.products.firstIndex(where: { $0.id == product.id }) {
-          updatedSeller.products[index] = product
-        }
-        try await sellerService.updateSeller(updatedSeller)
-        seller = updatedSeller
-      }
-    } catch {
-      errorMessage = "Failed to update product: \(error.localizedDescription)"
-    }
   }
+
   
   func deleteProduct(withId id: String) async {
-    do {
-      try await productService.deleteProduct(withId: id)
-
-      products.removeAll { $0.id == id }
-      hasProducts = !products.isEmpty
-
-      if var updatedSeller = seller {
-        updatedSeller.products.removeAll { $0.id == id }
-        try await sellerService.updateSeller(updatedSeller)
-        seller = updatedSeller
+      do {
+          try await productService.deleteProduct(withId: id)
+          products.removeAll { $0.id == id }
+      } catch {
+          errorMessage = "Error deleting product: \(error.localizedDescription)"
       }
-    } catch {
-      errorMessage = "Failed to delete product: \(error.localizedDescription)"
-    }
   }
 }
