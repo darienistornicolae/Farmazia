@@ -6,6 +6,8 @@ class DependencyContainer {
   lazy var productService: ProductServiceProtocol = ProductService(firestoreManager: firestoreManager)
   lazy var firestoreManager: FirestoreManagerProtocol = FirestoreManager()
   lazy var authenticationManager: AuthenticationManagerProtocol = AuthenticationManager()
+  lazy var sellerService: SellerServiceProtocol = SellerService(firestoreManager: firestoreManager)
+  lazy var storageManager: FirebaseStorageManagerProtocol = FirebaseStorageManager()
 
   init() {
     self.appState = AppState()
@@ -24,6 +26,18 @@ class DependencyContainer {
   }
 
   func makeAuthenticationViewModel() -> AuthenticationViewModel {
-    AuthenticationViewModel(authManager: authenticationManager)
+    AuthenticationViewModel(
+      authManager: authenticationManager,
+      sellerService: sellerService,
+      productService: productService
+    )
+  }
+
+  func makeCreateProductViewModel(sellerViewModel: SellerViewModel) -> CreateProductViewModel {
+    CreateProductViewModel(sellerViewModel: sellerViewModel, storageManager: storageManager)
+  }
+
+  func makeSellerViewModel() -> SellerViewModel {
+    SellerViewModel(sellerService: sellerService, authManager: authenticationManager, productService: productService)
   }
 }

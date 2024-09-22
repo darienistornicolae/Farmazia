@@ -1,14 +1,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct AddressModel: Codable {
-  var city: String
-  var county: String
-  var address: String
-  var postalCode: String
-}
-
-struct ProductModel: Codable, Hashable {
+struct ProductModel: Codable, Hashable, Identifiable {
   @DocumentID var id: String?
   var name: String
   var image: String?
@@ -76,7 +69,7 @@ enum ProductCategory: String, Codable, CaseIterable {
   }
 }
 
-enum UnitType: String, Codable {
+enum UnitType: String, Codable, CaseIterable {
   case kg
   case gram
   case piece
@@ -163,132 +156,3 @@ enum SortOrder {
   case priceAscending, priceDescending, dateAscending, dateDescending
 }
 
-struct MockData {
-
-  static let seller: SellerModel = SellerModel(
-    id: "S1",
-    fullName: "Green Valley Farm",
-    contactInformation: ContactModel(
-      email: "info@greenvalleyfarm.com",
-      phoneNumber: "+1234567890",
-      addressInformation: AddressModel(
-        city: "Farmville",
-        county: "Green County",
-        address: "123 Farm Road",
-        postalCode: "12345"
-      )
-    ),
-    products: [],
-    rating: 4.8
-  )
-
-  static let buyer: UserModel = UserModel(
-    id: "U1",
-    fullName: "John Doe",
-    contactInformation: ContactModel(
-      email: "john.doe@example.com",
-      phoneNumber: "+9876543210",
-      addressInformation: AddressModel(
-        city: "Springfield",
-        county: "Springfield County",
-        address: "456 Main St",
-        postalCode: "67890"
-      )
-    )
-  )
-
-  static let products: [ProductModel] = [
-    ProductModel(
-      id: "1",
-      name: "Organic Apples",
-      image: "https://example.com/apple.jpg",
-      description: "Fresh, crisp organic apples from local orchards.",
-      sellerId: seller.id!,
-      productType: .fruits,
-      price: 2.99,
-      quantity: 14,
-      unit: .kg,
-      isOrganic: true,
-      isOutOfStock: false
-    ),
-    ProductModel(
-      id: "2",
-      name: "Organic Carrots",
-      image: "https://example.com/carrot.jpg",
-      description: "Sweet and crunchy organic carrots, perfect for snacking or cooking.",
-      sellerId: seller.id!,
-      productType: .vegetables,
-      price: 1.99,
-      quantity: 500,
-      unit: .gram,
-      isOrganic: true,
-      isOutOfStock: false
-    ),
-    ProductModel(
-      id: "3",
-      name: "Whole Grain Bread",
-      image: "https://example.com/bread.jpg",
-      description: "Freshly baked whole grain bread, rich in fiber and nutrients.",
-      sellerId: seller.id!,
-      productType: .grains,
-      price: 3.50,
-      quantity: 1,
-      unit: .piece,
-      isOrganic: false,
-      isOutOfStock: false
-    ),
-    ProductModel(
-      id: "4",
-      name: "Organic Milk",
-      image: "https://example.com/milk.jpg",
-      description: "Creamy organic milk from grass-fed cows.",
-      sellerId: seller.id!,
-      productType: .dairy,
-      price: 4.99,
-      quantity: 1,
-      unit: .liter,
-      isOrganic: true,
-      isOutOfStock: false
-    ),
-    ProductModel(
-      id: "5",
-      name: "Free-Range Chicken",
-      image: "https://example.com/chicken.jpg",
-      description: "Tender, free-range chicken raised without antibiotics.",
-      sellerId: seller.id!,
-      productType: .meat,
-      price: 8.99,
-      quantity: 1,
-      unit: .kg,
-      isOrganic: false,
-      isOutOfStock: false
-    ),
-    ProductModel(
-      id: "6",
-      name: "Fresh Basil",
-      image: "https://example.com/basil.jpg",
-      description: "Aromatic fresh basil, perfect for pasta dishes and salads.",
-      sellerId: seller.id!,
-      productType: .herbs,
-      price: 1.50,
-      quantity: 1,
-      unit: .bunch,
-      isOrganic: true,
-      isOutOfStock: true
-    )
-  ]
-
-  static let order: OrderModel = OrderModel(
-    id: "O1",
-    buyerId: buyer.id!,
-    sellerId: seller.id!,
-    items: [
-      OrderItemModel(productId: products[0].id!, quantity: 2, unitPrice: products[0].price, taxRate: 0.08),
-      OrderItemModel(productId: products[2].id!, quantity: 1, unitPrice: products[2].price, taxRate: 0.08)
-    ],
-    taxRate: 0.08,
-    status: .confirmed,
-    createdAt: Date(),
-    updatedAt: Date()
-  )
-}

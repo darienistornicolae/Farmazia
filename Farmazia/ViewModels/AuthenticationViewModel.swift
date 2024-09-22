@@ -9,10 +9,18 @@ class AuthenticationViewModel: ObservableObject {
   @Published var currentUser: User?
 
   private let authManager: AuthenticationManagerProtocol
+  private let sellerService: SellerServiceProtocol
+  private let productService: ProductServiceProtocol
   private var cancellables = Set<AnyCancellable>()
 
-  init(authManager: AuthenticationManagerProtocol) {
+  init(
+    authManager: AuthenticationManagerProtocol,
+    sellerService: SellerServiceProtocol,
+    productService: ProductServiceProtocol
+  ) {
     self.authManager = authManager
+    self.sellerService = sellerService
+    self.productService = productService
     setupUserSubscription()
   }
 
@@ -64,6 +72,18 @@ class AuthenticationViewModel: ObservableObject {
 
   func deleteAccount() async {
     do {
+      guard let userId = authManager.currentUser?.uid else {
+        throw NSError(domain: "AuthenticationError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is currently signed in"])
+      }
+      let seller = try await sellerService.getSeller(id: userId)
+
+      guard let sellerId = seller?.id else {
+        throw NSError(domain: "AuthenticationError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No seller id discovered"])
+      }
+
+      try await productService.deleteAllProducts(for: sellerId)
+      try await sellerService.deleteSeller(id: sellerId)
+
       try await authManager.deleteAccount()
       self.errorMessage = nil
     } catch {

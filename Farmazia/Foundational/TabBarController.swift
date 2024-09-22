@@ -20,7 +20,7 @@ struct TabBarController: View {
           Label("Cart", systemImage: "cart")
         }
 
-      ProfileView(viewModel: container.makeAuthenticationViewModel())
+      ProfileView(container: container)
         .tabItem {
           Label("Profile", systemImage: "person.fill")
         }

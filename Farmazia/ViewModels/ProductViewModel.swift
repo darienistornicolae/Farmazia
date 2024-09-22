@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 class ProductViewModel: ObservableObject {
   @Published var product: ProductModel
   @Published var seller: SellerModel?
@@ -12,7 +13,6 @@ class ProductViewModel: ObservableObject {
     self.productService = productService
   }
 
-  @MainActor
   func fetchSellerInfo() async {
     do {
       self.seller = try await productService.fetchSeller(withId: product.sellerId)

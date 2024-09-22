@@ -1,20 +1,30 @@
 import SwiftUI
-import FirebaseAuth
+
+enum ActiveSheet: Identifiable, Hashable {
+  case changePassword, editFarm
+  var id: Self { self }
+}
 
 struct ProfileView: View {
-  @StateObject private var viewModel: AuthenticationViewModel
-  @State private var showingChangePassword = false
+  @StateObject private var authViewModel: AuthenticationViewModel
+  @StateObject private var sellerViewModel: SellerViewModel
+  @State private var activeSheet: ActiveSheet?
   @State private var showingDeleteConfirmation = false
+  @State private var showingFarmProducts = false
 
-  init(viewModel: @autoclosure @escaping () -> AuthenticationViewModel) {
-    self._viewModel = StateObject(wrappedValue: viewModel())
+  private let container: DependencyContainer
+
+  init(container: DependencyContainer) {
+    self.container = container
+    self._authViewModel = StateObject(wrappedValue: container.makeAuthenticationViewModel())
+    self._sellerViewModel = StateObject(wrappedValue: container.makeSellerViewModel())
   }
 
   var body: some View {
-    NavigationView {
+    NavigationStack {
       Form {
         Section(header: Text("User Information")) {
-          if let user = viewModel.currentUser {
+          if let user = authViewModel.currentUser {
             Text("Email: \(user.email ?? "N/A")")
             Text("User ID: \(user.uid)")
           } else {
@@ -22,30 +32,49 @@ struct ProfileView: View {
           }
         }
 
-        Section {
-          Button("Change Password") {
-            showingChangePassword = true
-          }
-        }
-
-        Section {
-          Button("Sign Out") {
-            viewModel.signOut()
-          }
-        }
-
-        Section {
-          Button("Delete Account") {
-            Task {
-              await viewModel.deleteAccount()
+        Section(header: Text("Farm Details")) {
+          if let seller = sellerViewModel.seller {
+            Text("Farm Name: \(seller.farmName)")
+            Text("Description: \(seller.farmDescription)")
+            Button("Edit Farm Details") {
+              activeSheet = .editFarm
             }
+          } else {
+            Text("Farm details not available")
           }
-          .foregroundColor(.red)
+        }
+
+        Section(header: Text("Products")) {
+          Button("Manage Products") {
+            showingFarmProducts = true
+          }
+        }
+
+        Section("Account Management") {
+          Button("Change Password") {
+            activeSheet = .changePassword
+          }
+          Button("Sign Out") {
+            authViewModel.signOut()
+          }
+          .foregroundStyle(.red)
+          Button("Delete Account") {
+            showingDeleteConfirmation = true
+          }
+          .foregroundStyle(.red)
         }
       }
       .navigationTitle("Profile")
-      .sheet(isPresented: $showingChangePassword) {
-        ChangePasswordView(viewModel: viewModel)
+      .sheet(item: $activeSheet) { item in
+        switch item {
+        case .changePassword:
+          ChangePasswordView(viewModel: authViewModel)
+        case .editFarm:
+          FarmDetailsView(viewModel: sellerViewModel)
+        }
+      }
+      .fullScreenCover(isPresented: $showingFarmProducts) {
+        FarmProductsView(viewModel: sellerViewModel)
       }
       .alert(isPresented: $showingDeleteConfirmation) {
         Alert(
@@ -53,63 +82,11 @@ struct ProfileView: View {
           message: Text("Are you sure you want to delete your account? This action cannot be undone."),
           primaryButton: .destructive(Text("Delete")) {
             Task {
-              await viewModel.deleteAccount()
+              await authViewModel.deleteAccount()
             }
           },
           secondaryButton: .cancel()
         )
-      }
-      .alert(isPresented: Binding<Bool>(
-        get: { viewModel.errorMessage != nil },
-        set: { _ in viewModel.errorMessage = nil }
-      )) {
-        Alert(title: Text("Error"), message: Text(viewModel.errorMessage ?? ""), dismissButton: .default(Text("OK")))
-      }
-    }
-  }
-}
-
-struct ChangePasswordView: View {
-  @StateObject var viewModel: AuthenticationViewModel
-  @State private var newPassword = ""
-  @State private var confirmPassword = ""
-  @Environment(\.presentationMode) var presentationMode
-
-  init(viewModel: @autoclosure @escaping () -> AuthenticationViewModel) {
-    self._viewModel = StateObject(wrappedValue: viewModel())
-  }
-
-  var body: some View {
-    NavigationView {
-      Form {
-        Section(header: Text("Change Password")) {
-          SecureField("New Password", text: $newPassword)
-          SecureField("Confirm New Password", text: $confirmPassword)
-        }
-
-        Section {
-          Button("Update Password") {
-            if newPassword == confirmPassword {
-              Task {
-                do {
-                  try await Auth.auth().currentUser?.updatePassword(to: newPassword)
-                  presentationMode.wrappedValue.dismiss()
-                } catch {
-                  viewModel.errorMessage = error.localizedDescription
-                }
-              }
-            } else {
-              viewModel.errorMessage = "Passwords do not match"
-            }
-          }
-        }
-      }
-      .navigationTitle("Change Password")
-      .alert(isPresented: Binding<Bool>(
-        get: { viewModel.errorMessage != nil },
-        set: { _ in viewModel.errorMessage = nil }
-      )) {
-        Alert(title: Text("Error"), message: Text(viewModel.errorMessage ?? ""), dismissButton: .default(Text("OK")))
       }
     }
   }

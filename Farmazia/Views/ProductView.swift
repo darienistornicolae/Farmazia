@@ -3,20 +3,18 @@ import SwiftUI
 struct ProductView: View {
   @StateObject var viewModel: ProductViewModel
 
+  init(viewModel: @autoclosure @escaping () -> ProductViewModel) {
+    self._viewModel = StateObject(wrappedValue: viewModel())
+  }
+
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
-        AsyncImage(url: URL(string: viewModel.product.image ?? "")) { image in
-          image.resizable().aspectRatio(contentMode: .fit)
-        } placeholder: {
-          Color.gray
-        }
-        .frame(height: 300)
-        
+        ProductImageView(imageURL: viewModel.product.image)
         Text(viewModel.product.name)
           .font(.title)
           .fontWeight(.bold)
-        
+
         Text(viewModel.product.description)
           .font(.body)
         

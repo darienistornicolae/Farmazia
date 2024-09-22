@@ -12,6 +12,8 @@
 		01479BDC2C9E0FAB00062FB9 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 01479BDB2C9E0FAB00062FB9 /* FirebaseFirestore */; };
 		01479BDE2C9E0FAB00062FB9 /* FirebaseFirestoreCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 01479BDD2C9E0FAB00062FB9 /* FirebaseFirestoreCombine-Community */; };
 		01479BE02C9E0FAB00062FB9 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 01479BDF2C9E0FAB00062FB9 /* FirebaseMessaging */; };
+		01C2FAF22CA0901800DD22B3 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 01C2FAF12CA0901800DD22B3 /* FirebaseStorage */; };
+		01C2FAF42CA0901800DD22B3 /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 01C2FAF32CA0901800DD22B3 /* FirebaseStorageCombine-Community */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,10 +34,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				01479BD82C9E0FAB00062FB9 /* FirebaseAnalytics in Frameworks */,
+				01C2FAF42CA0901800DD22B3 /* FirebaseStorageCombine-Community in Frameworks */,
 				01479BDE2C9E0FAB00062FB9 /* FirebaseFirestoreCombine-Community in Frameworks */,
 				01479BE02C9E0FAB00062FB9 /* FirebaseMessaging in Frameworks */,
 				01479BDA2C9E0FAB00062FB9 /* FirebaseAuth in Frameworks */,
 				01479BDC2C9E0FAB00062FB9 /* FirebaseFirestore in Frameworks */,
+				01C2FAF22CA0901800DD22B3 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +50,7 @@
 			isa = PBXGroup;
 			children = (
 				01B18ACE2C98A21200AF7056 /* Farmazia */,
+				01C2FAF02CA0901800DD22B3 /* Frameworks */,
 				01B18ACD2C98A21200AF7056 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +61,13 @@
 				01B18ACC2C98A21200AF7056 /* Farmazia.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		01C2FAF02CA0901800DD22B3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,6 +95,8 @@
 				01479BDB2C9E0FAB00062FB9 /* FirebaseFirestore */,
 				01479BDD2C9E0FAB00062FB9 /* FirebaseFirestoreCombine-Community */,
 				01479BDF2C9E0FAB00062FB9 /* FirebaseMessaging */,
+				01C2FAF12CA0901800DD22B3 /* FirebaseStorage */,
+				01C2FAF32CA0901800DD22B3 /* FirebaseStorageCombine-Community */,
 			);
 			productName = Farmazia;
 			productReference = 01B18ACC2C98A21200AF7056 /* Farmazia.app */;
@@ -398,6 +412,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 01479BD62C9E0FAB00062FB9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		01C2FAF12CA0901800DD22B3 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01479BD62C9E0FAB00062FB9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		01C2FAF32CA0901800DD22B3 /* FirebaseStorageCombine-Community */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01479BD62C9E0FAB00062FB9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseStorageCombine-Community";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

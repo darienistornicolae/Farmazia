@@ -17,16 +17,18 @@ class FirestoreManager: FirestoreManagerProtocol {
     return try await dataBase.collection(collection).whereField(field, isEqualTo: value).getDocuments()
   }
 
-  func setData(_ data: [String: Any], in collection: String, documentId: String) async throws {
-    try await dataBase.collection(collection).document(documentId).setData(data)
+  func setData<T: Encodable>(_ object: T, in collection: String, documentId: String) async throws {
+      let documentReference = dataBase.collection(collection).document(documentId)
+      try documentReference.setData(from: object)
   }
 
-  func addDocument(_ data: [String: Any], to collection: String) async throws -> DocumentReference {
-    return try await dataBase.collection(collection).addDocument(data: data)
+  func addDocument<T: Encodable>(_ object: T, to collection: String) async throws -> DocumentReference {
+      return try dataBase.collection(collection).addDocument(from: object)
   }
 
-  func updateDocument(_ data: [String: Any], in collection: String, documentId: String) async throws {
-    try await dataBase.collection(collection).document(documentId).updateData(data)
+  func updateDocument<T: Encodable>(_ object: T, in collection: String, documentId: String) async throws {
+      let documentReference = dataBase.collection(collection).document(documentId)
+      try documentReference.setData(from: object, merge: true)
   }
 
   func deleteDocument(from collection: String, documentId: String) async throws {

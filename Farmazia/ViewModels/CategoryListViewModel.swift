@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 class CategoryListViewModel: ObservableObject {
   @Published var searchText: String = ""
   @Published var debouncedSearchText: String = ""

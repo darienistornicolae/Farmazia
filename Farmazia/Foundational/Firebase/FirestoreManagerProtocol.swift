@@ -8,9 +8,9 @@ protocol FirestoreManagerProtocol {
   func getDocuments(from collection: String) async throws -> QuerySnapshot
   func getDocuments(from collection: String, whereField field: String, isEqualTo value: Any) async throws -> QuerySnapshot
 
-  func setData(_ data: [String: Any], in collection: String, documentId: String) async throws
-  func addDocument(_ data: [String: Any], to collection: String) async throws -> DocumentReference
-  func updateDocument(_ data: [String: Any], in collection: String, documentId: String) async throws
+  func setData<T: Encodable>(_ object: T, in collection: String, documentId: String) async throws
+  func addDocument<T: Encodable>(_ object: T, to collection: String) async throws -> DocumentReference
+  func updateDocument<T: Encodable>(_ object: T, in collection: String, documentId: String) async throws
   func deleteDocument(from collection: String, documentId: String) async throws
 
   // MARK: - Querying

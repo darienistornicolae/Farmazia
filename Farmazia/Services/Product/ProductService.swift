@@ -24,25 +24,45 @@ class ProductService: ProductServiceProtocol {
     return try? document.data(as: ProductModel.self)
   }
 
+  func deleteAllProducts(for sellerId: String) async throws {
+      let snapshot = try await firestoreManager.getDocuments(from: collectionName, whereField: "sellerId", isEqualTo: sellerId)
+      for document in snapshot.documents {
+          try await firestoreManager.deleteDocument(from: collectionName, documentId: document.documentID)
+      }
+  }
+
   func fetchProductsByCategory(_ category: ProductCategory) async throws -> [ProductModel] {
     let snapshot = try await firestoreManager.getDocuments(from: collectionName, whereField: "productType", isEqualTo: category.rawValue)
     return try snapshot.documents.compactMap { try $0.data(as: ProductModel.self) }
   }
 
   func fetchProductsBySeller(sellerId: String) async throws -> [ProductModel] {
-    let snapshot = try await firestoreManager.getDocuments(from: collectionName, whereField: "seller.id", isEqualTo: sellerId)
-    return try snapshot.documents.compactMap { try $0.data(as: ProductModel.self) }
+    do {
+      let snapshot = try await firestoreManager.getDocuments(from: collectionName, whereField: "sellerId", isEqualTo: sellerId)
+      let products = snapshot.documents.compactMap { document -> ProductModel? in
+        do {
+          return try document.data(as: ProductModel.self)
+        } catch {
+          return nil
+        }
+      }
+      return products
+    } catch {
+      print("Error fetching products: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func addProduct(_ product: ProductModel) async throws -> String {
-    let data = try product.asDictionary()
-    let documentRef = try await firestoreManager.addDocument(data, to: collectionName)
+    let documentRef = try await firestoreManager.addDocument(product, to: collectionName)
     return documentRef.documentID
   }
 
   func updateProduct(_ product: ProductModel) async throws {
-    let data = try product.asDictionary()
-    try await firestoreManager.updateDocument(data, in: collectionName, documentId: product.id ?? "")
+    guard let id = product.id else {
+      throw NSError(domain: "ProductService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Product ID is missing"])
+    }
+    try await firestoreManager.updateDocument(product, in: collectionName, documentId: id)
   }
 
   func deleteProduct(withId id: String) async throws {

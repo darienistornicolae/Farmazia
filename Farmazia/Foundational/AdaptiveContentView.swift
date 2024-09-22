@@ -41,7 +41,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     case .shoppingCart:
       ShoppingCartView()
     case .profile:
-      ProfileView(viewModel: container.makeAuthenticationViewModel())
+      ProfileView(container: container)
     }
   }
 }

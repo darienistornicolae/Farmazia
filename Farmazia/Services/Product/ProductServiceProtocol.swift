@@ -13,4 +13,5 @@ protocol ProductServiceProtocol {
   func fetchFeaturedProducts(limit: Int) async throws -> [ProductModel]
   func addProductListener(completion: @escaping ([ProductModel]) -> Void) -> ListenerRegistration
   func fetchSeller(withId id: String) async throws -> SellerModel
+  func deleteAllProducts(for sellerId: String) async throws
 }

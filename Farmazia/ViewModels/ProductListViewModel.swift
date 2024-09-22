@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 class ProductListViewModel: ObservableObject {
   @Published var products: [ProductModel] = []
   @Published var sortOrder: SortOrder = .dateDescending
@@ -32,7 +33,6 @@ class ProductListViewModel: ObservableObject {
     return result
   }
 
-  @MainActor
   func fetchProducts() async {
     do {
       if let category = category {
