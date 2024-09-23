@@ -21,7 +21,7 @@ struct SellerModel: Codable, Identifiable {
   var contactInformation: ContactModel
   var farmName: String
   var farmDescription: String
-  var products: [ProductModel]
+  var productIds: [String]
   var rating: Double
 
   init(
@@ -30,7 +30,7 @@ struct SellerModel: Codable, Identifiable {
     contactInformation: ContactModel,
     farmName: String,
     farmDescription: String,
-    products: [ProductModel],
+    productIds: [String],
     rating: Double
   ) {
     self.id = id
@@ -38,7 +38,7 @@ struct SellerModel: Codable, Identifiable {
     self.contactInformation = contactInformation
     self.farmName = farmName
     self.farmDescription = farmDescription
-    self.products = products
+    self.productIds = productIds
     self.rating = rating
   }
   
@@ -48,7 +48,7 @@ struct SellerModel: Codable, Identifiable {
     case contactInformation
     case farmName
     case farmDescription
-    case products
+    case productIds
     case rating
   }
 }

@@ -63,11 +63,11 @@ class SellerViewModel: ObservableObject {
         ),
         farmName: farmName,
         farmDescription: farmDescription,
-        products: [],
-        rating: 0.0
+        productIds: seller?.productIds ?? [], // Preserve existing product IDs if any
+        rating: seller?.rating ?? 0.0 // Preserve existing rating or default to 0.0
       )
-      
-      if let existingSeller = seller {
+
+      if seller != nil {
         try await sellerService.updateSeller(newSeller)
       } else {
         try await sellerService.createSeller(newSeller)
@@ -90,8 +90,9 @@ class SellerViewModel: ObservableObject {
       hasProducts = !products.isEmpty
 
       if var updatedSeller = seller {
-        updatedSeller.products = products
+        updatedSeller.productIds = products.compactMap { $0.id }
         seller = updatedSeller
+        try await sellerService.updateSeller(updatedSeller)
       }
     } catch {
       errorMessage = "Failed to load products: \(error.localizedDescription)"
@@ -99,34 +100,45 @@ class SellerViewModel: ObservableObject {
   }
   
   func addProduct(_ product: ProductModel) async throws {
-      let productId = try await productService.addProduct(product)
-      var newProduct = product
-      newProduct.id = productId
-      products.append(newProduct)
-  }
+    let productId = try await productService.addProduct(product)
+    var newProduct = product
+    newProduct.id = productId
+    products.append(newProduct)
 
-  func moveProduct(from source: IndexSet, to destination: Int) {
-    products.move(fromOffsets: source, toOffset: destination)
+    if var updatedSeller = seller {
+      updatedSeller.productIds.append(productId)
+      try await sellerService.updateSeller(updatedSeller)
+      seller = updatedSeller
+    }
   }
-
+  
   func updateProduct(_ product: ProductModel) async {
-      do {
-          try await productService.updateProduct(product)
-          if let index = products.firstIndex(where: { $0.id == product.id }) {
-              products[index] = product
-          }
-      } catch {
-          errorMessage = "Error updating product: \(error.localizedDescription)"
+    do {
+      try await productService.updateProduct(product)
+      if let index = products.firstIndex(where: { $0.id == product.id }) {
+        products[index] = product
       }
+    } catch {
+      errorMessage = "Error updating product: \(error.localizedDescription)"
+    }
   }
-
   
   func deleteProduct(withId id: String) async {
-      do {
-          try await productService.deleteProduct(withId: id)
-          products.removeAll { $0.id == id }
-      } catch {
-          errorMessage = "Error deleting product: \(error.localizedDescription)"
+    do {
+      try await productService.deleteProduct(withId: id)
+      products.removeAll { $0.id == id }
+
+      if var updatedSeller = seller {
+        updatedSeller.productIds.removeAll { $0 == id }
+        try await sellerService.updateSeller(updatedSeller)
+        seller = updatedSeller
       }
+    } catch {
+      errorMessage = "Error deleting product: \(error.localizedDescription)"
+    }
+  }
+  
+  func moveProduct(from source: IndexSet, to destination: Int) {
+    products.move(fromOffsets: source, toOffset: destination)
   }
 }

@@ -3,7 +3,7 @@ import FirebaseFirestore
 
 class SellerService: SellerServiceProtocol {
   private let firestoreManager: FirestoreManagerProtocol
-  private let collection = "sellers"
+  private let sellerCollection = "sellers"
 
   init(firestoreManager: FirestoreManagerProtocol) {
     self.firestoreManager = firestoreManager
@@ -13,11 +13,11 @@ class SellerService: SellerServiceProtocol {
     guard let id = seller.id else {
       throw NSError(domain: "SellerService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Seller ID is missing"])
     }
-    try await firestoreManager.setData(seller, in: collection, documentId: id)
+    try await firestoreManager.setData(seller, in: sellerCollection, documentId: id)
   }
 
   func getSeller(id: String) async throws -> SellerModel? {
-    let document = try await firestoreManager.getDocument(from: collection, documentId: id)
+    let document = try await firestoreManager.getDocument(from: sellerCollection, documentId: id)
     return try? document.data(as: SellerModel.self)
   }
 
@@ -25,10 +25,10 @@ class SellerService: SellerServiceProtocol {
     guard let id = seller.id else {
       throw NSError(domain: "SellerService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Seller ID is missing"])
     }
-    try await firestoreManager.updateDocument(seller, in: collection, documentId: id)
+    try await firestoreManager.updateDocument(seller, in: sellerCollection, documentId: id)
   }
 
   func deleteSeller(id: String) async throws {
-    try await firestoreManager.deleteDocument(from: collection, documentId: id)
+    try await firestoreManager.deleteDocument(from: sellerCollection, documentId: id)
   }
 }

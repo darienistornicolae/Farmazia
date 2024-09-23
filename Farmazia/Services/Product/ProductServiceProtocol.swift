@@ -10,7 +10,6 @@ protocol ProductServiceProtocol {
   func updateProduct(_ product: ProductModel) async throws
   func deleteProduct(withId id: String) async throws
   func searchProducts(by searchTerm: String) async throws -> [ProductModel]
-  func fetchFeaturedProducts(limit: Int) async throws -> [ProductModel]
   func addProductListener(completion: @escaping ([ProductModel]) -> Void) -> ListenerRegistration
   func fetchSeller(withId id: String) async throws -> SellerModel
   func deleteAllProducts(for sellerId: String) async throws
