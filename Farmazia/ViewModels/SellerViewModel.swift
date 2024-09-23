@@ -38,8 +38,15 @@ class SellerViewModel: ObservableObject {
       errorMessage = "Failed to load seller: \(error.localizedDescription)"
     }
   }
-  
-  func createOrUpdateFarm(farmName: String, farmDescription: String, addressInfo: AddressModel) async {
+
+  func createOrUpdateFarm(
+    fullName: String,
+    email: String,
+    phoneNumber: String,
+    farmName: String,
+    farmDescription: String,
+    addressInfo: AddressModel
+  ) async {
     guard let userId = authManager.currentUser?.uid else {
       errorMessage = "No authenticated user found"
       return
@@ -48,10 +55,10 @@ class SellerViewModel: ObservableObject {
     do {
       let newSeller = SellerModel(
         id: userId,
-        fullName: authManager.currentUser?.displayName ?? "",
+        fullName: fullName,
         contactInformation: ContactModel(
-          email: authManager.currentUser?.email ?? "",
-          phoneNumber: "",
+          email: email,
+          phoneNumber: phoneNumber,
           addressInformation: addressInfo
         ),
         farmName: farmName,
@@ -59,14 +66,20 @@ class SellerViewModel: ObservableObject {
         products: [],
         rating: 0.0
       )
-      try await sellerService.createSeller(newSeller)
+      
+      if let existingSeller = seller {
+        try await sellerService.updateSeller(newSeller)
+      } else {
+        try await sellerService.createSeller(newSeller)
+      }
+
       seller = newSeller
       farmCreated = true
     } catch {
-      errorMessage = "Failed to create farm: \(error.localizedDescription)"
+      errorMessage = "Failed to create/update farm: \(error.localizedDescription)"
     }
   }
-  
+
   func loadSellerProducts() async {
     guard let sellerId = seller?.id else {
       errorMessage = "Seller ID not found"

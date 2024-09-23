@@ -4,6 +4,9 @@ struct CreateFarmView: View {
   @ObservedObject var viewModel: SellerViewModel
   @Environment(\.dismiss) var dismiss
 
+  @State private var fullName: String = ""
+  @State private var email: String = ""
+  @State private var phoneNumber: String = ""
   @State private var farmName: String = ""
   @State private var farmDescription: String = ""
   @State private var city: String = ""
@@ -13,6 +16,14 @@ struct CreateFarmView: View {
 
   var body: some View {
     Form {
+      Section(header: Text("Seller Information")) {
+        TextField("Full Name", text: $fullName)
+        TextField("Email", text: $email)
+          .keyboardType(.emailAddress)
+        TextField("Phone Number", text: $phoneNumber)
+          .keyboardType(.phonePad)
+      }
+
       Section(header: Text("Farm Information")) {
         TextField("Farm Name", text: $farmName)
         TextEditor(text: $farmDescription)
@@ -43,7 +54,20 @@ struct CreateFarmView: View {
   }
 
   func saveFarm() async {
-    let addressInfo = AddressModel(city: city, county: county, address: address, postalCode: postalCode)
-    await viewModel.createOrUpdateFarm(farmName: farmName, farmDescription: farmDescription, addressInfo: addressInfo)
+    let addressInfo = AddressModel(
+      city: city,
+      county: county,
+      address: address,
+      postalCode: postalCode
+    )
+
+    await viewModel.createOrUpdateFarm(
+      fullName: fullName,
+      email: email,
+      phoneNumber: phoneNumber,
+      farmName: farmName,
+      farmDescription: farmDescription,
+      addressInfo: addressInfo
+    )
   }
 }

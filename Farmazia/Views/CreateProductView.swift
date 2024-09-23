@@ -7,8 +7,19 @@ struct CreateProductView: View {
   @Binding var shouldDismiss: Bool
   @State private var showingImagePicker = false
   
-  init(sellerViewModel: SellerViewModel, storageManager: FirebaseStorageManagerProtocol, existingProduct: ProductModel?, shouldDismiss: Binding<Bool>) {
-      self._viewModel = StateObject(wrappedValue: CreateProductViewModel(sellerViewModel: sellerViewModel, storageManager: storageManager, existingProduct: existingProduct))
+  init(
+    sellerViewModel: SellerViewModel,
+    storageManager: FirebaseStorageManagerProtocol,
+    existingProduct: ProductModel?,
+    shouldDismiss: Binding<Bool>
+  ) {
+    self._viewModel = StateObject(
+      wrappedValue: CreateProductViewModel(
+        sellerViewModel: sellerViewModel,
+        storageManager: storageManager,
+        existingProduct: existingProduct
+      )
+    )
       self._shouldDismiss = shouldDismiss
   }
 
