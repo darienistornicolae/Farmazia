@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct FarmCreationView: View {
+struct CreateFarmView: View {
   @ObservedObject var viewModel: SellerViewModel
   @Environment(\.dismiss) var dismiss
 

@@ -22,7 +22,7 @@ struct ContentView: View {
       } else if authViewModel.isLoading {
         ProgressView("Loading...")
       } else if sellerViewModel.seller == nil {
-        FarmCreationView(viewModel: sellerViewModel)
+        CreateFarmView(viewModel: sellerViewModel)
       } else {
         AdaptiveContentView(container: container)
       }

@@ -47,12 +47,6 @@ struct AuthenticationView: View {
         }
       }
       .navigationTitle(isSignUp ? "Create Account" : "Welcome Back")
-      .alert(isPresented: Binding<Bool>(
-        get: { viewModel.errorMessage != nil },
-        set: { _ in viewModel.errorMessage = nil }
-      )) {
-        Alert(title: Text("Error"), message: Text(viewModel.errorMessage ?? ""), dismissButton: .default(Text("OK")))
-      }
     }
   }
 }
