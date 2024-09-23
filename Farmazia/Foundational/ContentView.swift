@@ -27,16 +27,8 @@ struct ContentView: View {
         AdaptiveContentView(container: container)
       }
     }
-    .onChange(of: authViewModel.isAuthenticated) { isAuthenticated in
+    .onChange(of: authViewModel.isAuthenticated || sellerViewModel.farmCreated) { isAuthenticated in
       if isAuthenticated {
-        Task {
-          await sellerViewModel.loadCurrentSeller()
-        }
-      }
-    }
-    .onChange(of: sellerViewModel.farmCreated) { created in
-      if created {
-        sellerViewModel.farmCreated = false
         Task {
           await sellerViewModel.loadCurrentSeller()
         }

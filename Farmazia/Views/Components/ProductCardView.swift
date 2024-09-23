@@ -57,8 +57,13 @@ struct ProductCardView: View {
     }
     .frame(height: 100)
     .padding()
-    .background(Color.white)
+    .background(Color(.systemBackground))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12)
+        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+    )
     .cornerRadius(12)
-    .shadow(radius: 4)
+    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
   }
 }
+

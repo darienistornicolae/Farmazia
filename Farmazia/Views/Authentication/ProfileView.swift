@@ -26,7 +26,6 @@ struct ProfileView: View {
         Section(header: Text("User Information")) {
           if let user = authViewModel.currentUser {
             Text("Email: \(user.email ?? "N/A")")
-            Text("User ID: \(user.uid)")
           } else {
             Text("No user information available")
           }
