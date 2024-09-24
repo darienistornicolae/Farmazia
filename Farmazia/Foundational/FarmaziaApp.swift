@@ -8,6 +8,8 @@ struct FarmaziaApp: App {
   var body: some Scene {
     WindowGroup {
       ContentView(container: container)
+        .environmentObject(container.makeDataManager())
+        .tint(.green)
     }
   }
 }

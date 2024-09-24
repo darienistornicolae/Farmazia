@@ -34,12 +34,11 @@ class DependencyContainer {
   }
 
   func makeDataManager() -> DataManager {
-         DataManager(
-             sellerService: sellerService,
-             authManager: authenticationManager,
-             productService: productService,
-             storageManager: storageManager
-         )
-     }
-
+    DataManager(
+      sellerService: sellerService,
+      authManager: authenticationManager,
+      productService: productService,
+      storageManager: storageManager
+    )
+  }
 }

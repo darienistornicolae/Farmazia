@@ -1,8 +1,16 @@
 import SwiftUI
 
+fileprivate enum Field: Hashable {
+  case fullName, email, phoneNumber, farmName, farmDescription, city, county, address, postalCode
+  static var allCases: [Field] {
+    return [.fullName, .email, .phoneNumber, .farmName, .farmDescription, .city, .county, .address, .postalCode]
+  }
+}
+
 struct CreateFarmView: View {
   @ObservedObject var dataManager: DataManager
   @Environment(\.dismiss) var dismiss
+  @FocusState private var focusedField: Field?
 
   @State private var fullName: String = ""
   @State private var email: String = ""
@@ -15,41 +23,81 @@ struct CreateFarmView: View {
   @State private var postalCode: String = ""
 
   var body: some View {
-    Form {
-      Section(header: Text("Seller Information")) {
-        TextField("Full Name", text: $fullName)
-        TextField("Email", text: $email)
-          .keyboardType(.emailAddress)
-        TextField("Phone Number", text: $phoneNumber)
-          .keyboardType(.phonePad)
-      }
+    NavigationStack {
+      Form {
+        Section(header: Text("Seller Information")) {
+          TextField("Full Name", text: $fullName)
+            .focused($focusedField, equals: .fullName)
+            .submitLabel(.next)
+            .onSubmit { focusedField = .email }
+          TextField("Email", text: $email)
+            .focused($focusedField, equals: .email)
+            .keyboardType(.emailAddress)
+            .submitLabel(.next)
+            .onSubmit { focusedField = .phoneNumber }
+          TextField("Phone Number", text: $phoneNumber)
+            .focused($focusedField, equals: .phoneNumber)
+            .keyboardType(.phonePad)
+            .submitLabel(.next)
+            .onSubmit { focusedField = .farmName }
+        }
 
-      Section(header: Text("Farm Information")) {
-        TextField("Farm Name", text: $farmName)
-        TextEditor(text: $farmDescription)
-          .frame(height: 100)
-      }
+        Section(header: Text("Farm Information")) {
+          TextField("Farm Name", text: $farmName)
+            .focused($focusedField, equals: .farmName)
+            .submitLabel(.next)
+            .onSubmit { focusedField = .farmDescription }
+          TextEditor(text: $farmDescription)
+            .focused($focusedField, equals: .farmDescription)
+            .frame(height: 100)
+            .onSubmit { focusedField = .city }
+        }
 
-      Section(header: Text("Address")) {
-        TextField("City", text: $city)
-        TextField("County", text: $county)
-        TextField("Address", text: $address)
-        TextField("Postal Code", text: $postalCode)
-      }
+        Section(header: Text("Address")) {
+          TextField("City", text: $city)
+            .focused($focusedField, equals: .city)
+            .submitLabel(.next)
+            .onSubmit { focusedField = .county }
+          TextField("County", text: $county)
+            .focused($focusedField, equals: .county)
+            .submitLabel(.next)
+            .onSubmit { focusedField = .address }
+          TextField("Address", text: $address)
+            .focused($focusedField, equals: .address)
+            .submitLabel(.next)
+            .onSubmit { focusedField = .postalCode }
+          TextField("Postal Code", text: $postalCode)
+            .focused($focusedField, equals: .postalCode)
+            .submitLabel(.done)
+        }
 
-      Section {
-        Button("Save Farm") {
-          Task {
-            await saveFarm()
+        Section {
+          Button("Save Farm") {
+            Task {
+              await saveFarm()
+            }
           }
         }
       }
+      .keyboardToolbar(focusedField: $focusedField, fields: Field.allCases)
+      .navigationTitle("Create Your Farm")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            dismiss()
+          }
+        }
+      }
+      .onAppear {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+          focusedField = .fullName
+        }
+      }
     }
-    .navigationTitle("Create Your Farm")
-   
   }
 
-  func saveFarm() async {
+  private func saveFarm() async {
     let addressInfo = AddressModel(
       city: city,
       county: county,
@@ -65,5 +113,6 @@ struct CreateFarmView: View {
       farmDescription: farmDescription,
       addressInfo: addressInfo
     )
+    dismiss()
   }
 }

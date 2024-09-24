@@ -4,33 +4,32 @@ import Combine
 struct FarmProductsView: View {
   @ObservedObject var dataManager: DataManager
   @Environment(\.dismiss) var dismiss
-  @State private var showingProductForm = false
-  @State private var productToEdit: ProductModel?
+  @State private var productToEditOrAdd: ProductModel?
   @State private var searchText = ""
   @State private var selectedCategory: ProductCategory?
   @State private var refreshTrigger = false
-
+  
   private var filteredProducts: [ProductModel] {
     dataManager.products.filter { product in
       (searchText.isEmpty || product.name.localizedCaseInsensitiveContains(searchText)) &&
       (selectedCategory == nil || product.productType == selectedCategory)
     }
   }
-
+  
   var body: some View {
     NavigationStack {
       VStack {
         categoryFilterView
-
+        
         ScrollView {
           LazyVStack(spacing: 16) {
             ForEach(filteredProducts) { product in
               FarmProductCardView(product: product)
                 .onTapGesture {
-                  editProduct(product)
+                  createOrEditProduct(product)
                 }
                 .contextMenu {
-                  Button(action: { editProduct(product) }) {
+                  Button(action: { createOrEditProduct(product) }) {
                     Label("Edit", systemImage: "pencil")
                   }
                   Button(role: .destructive) {
@@ -52,25 +51,17 @@ struct FarmProductsView: View {
         }
         ToolbarItem(placement: .navigationBarTrailing) {
           Button(action: {
-            addNewProduct()
+            createOrEditProduct(nil)
           }) {
             Image(systemName: "plus")
           }
         }
       }
-      .sheet(isPresented: Binding(
-        get: { showingProductForm },
-        set: { newValue in
-          showingProductForm = newValue
-          if !newValue {
-            Task {
-              await dataManager.loadSellerProducts()
-              refreshTrigger.toggle()
-            }
-          }
-        }
-      )) {
-        CreateProductView(existingProduct: productToEdit)
+      .fullScreenCover(item: $productToEditOrAdd) { product in
+        CreateProductView(existingProduct: product)
+      }
+      .onReceive(dataManager.productUpdatePublisher) { _ in
+        refreshTrigger.toggle()
       }
       .id(refreshTrigger)
     }
@@ -80,11 +71,12 @@ struct FarmProductsView: View {
   }
 }
 
+
 struct CategoryButton: View {
   let title: String
   let isSelected: Bool
   let action: () -> Void
-
+  
   var body: some View {
     Button(action: action) {
       Text(title)
@@ -116,17 +108,15 @@ private extension FarmProductsView {
     .padding(.vertical, 8)
     .background(Color.gray.opacity(0.1))
   }
-  
-  func editProduct(_ product: ProductModel) {
-    productToEdit = product
-    showingProductForm = true
+
+  func createOrEditProduct(_ product: ProductModel?) {
+    if let product = product {
+      productToEditOrAdd = product
+    } else {
+      productToEditOrAdd = dataManager.createDefaultProduct()
+    }
   }
-  
-  func addNewProduct() {
-    productToEdit = nil
-    showingProductForm = true
-  }
-  
+
   func deleteProduct(_ product: ProductModel) {
     Task {
       if let productId = product.id {

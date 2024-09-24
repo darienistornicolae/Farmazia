@@ -15,6 +15,10 @@ class DataManager: ObservableObject {
   private var cancellables = Set<AnyCancellable>()
   private let storageManager: FirebaseStorageManagerProtocol
 
+  private var productUpdateSubject = PassthroughSubject<ProductModel, Never>()
+      var productUpdatePublisher: AnyPublisher<ProductModel, Never> {
+          productUpdateSubject.eraseToAnyPublisher()
+      }
   init(
     sellerService: SellerServiceProtocol,
     authManager: AuthenticationManagerProtocol,
@@ -121,6 +125,11 @@ class DataManager: ObservableObject {
     }
   }
 
+
+}
+
+// MARK: Image
+extension DataManager {
   func uploadProductImage(_ image: UIImage) async throws -> String {
     let compressedImage = compressImage(image)
     let path = "product_images/\(UUID().uuidString).jpg"
@@ -128,7 +137,7 @@ class DataManager: ObservableObject {
   }
 
   private func compressImage(_ image: UIImage) -> UIImage {
-    let maxSize: CGFloat = 500 // Maximum width or height
+    let maxSize: CGFloat = 500
     let scale = min(maxSize / image.size.width, maxSize / image.size.height)
     
     if scale < 1 {
@@ -142,10 +151,12 @@ class DataManager: ObservableObject {
       
       return newImage ?? image
     }
-    
     return image
   }
+}
 
+// MARK: Product
+extension DataManager {
   func addProduct(_ product: ProductModel, image: UIImage?) async throws {
     var newProduct = product
     
@@ -163,27 +174,9 @@ class DataManager: ObservableObject {
       try await sellerService.updateSeller(updatedSeller)
       currentSeller = updatedSeller
     }
-
+    
+    productUpdateSubject.send(newProduct)
     objectWillChange.send()
-  }
-
-  func updateProduct(_ product: ProductModel, image: UIImage?) async throws {
-      var updatedProduct = product
-      
-      if let newImage = image {
-          if let oldImagePath = product.image {
-              try? await deleteProductImage(at: oldImagePath)
-          }
-          let imageUrl = try await uploadProductImage(newImage)
-          updatedProduct.image = imageUrl
-      } else {
-          updatedProduct.image = product.image
-      }
-      try await productService.updateProduct(updatedProduct)
-      if let index = products.firstIndex(where: { $0.id == updatedProduct.id }) {
-          products[index] = updatedProduct
-      }
-      objectWillChange.send()
   }
 
   func deleteProduct(withId id: String) async throws {
@@ -203,5 +196,41 @@ class DataManager: ObservableObject {
   
   func moveProduct(from source: IndexSet, to destination: Int) {
     products.move(fromOffsets: source, toOffset: destination)
+  }
+
+  func updateProduct(_ product: ProductModel, image: UIImage?) async throws {
+    var updatedProduct = product
+
+    if let newImage = image {
+      if let oldImagePath = product.image {
+        try? await deleteProductImage(at: oldImagePath)
+      }
+      let imageUrl = try await uploadProductImage(newImage)
+      updatedProduct.image = imageUrl
+    } else {
+      updatedProduct.image = product.image
+    }
+    try await productService.updateProduct(updatedProduct)
+    if let index = products.firstIndex(where: { $0.id == updatedProduct.id }) {
+      products[index] = updatedProduct
+    }
+    productUpdateSubject.send(updatedProduct)
+    objectWillChange.send()
+  }
+
+  func createDefaultProduct() -> ProductModel {
+    return ProductModel(
+      id: nil,
+      name: "",
+      image: nil,
+      description: "",
+      sellerId: currentSeller?.id ?? "",
+      productType: .vegetables,
+      price: 0,
+      quantity: 0,
+      unit: .kg,
+      isOrganic: false,
+      isOutOfStock: false
+    )
   }
 }

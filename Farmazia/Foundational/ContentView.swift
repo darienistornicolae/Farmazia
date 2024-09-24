@@ -17,14 +17,17 @@ struct ContentView: View {
     ZStack {
       if !appState.hasCompletedOnboarding {
         OnboardingFlow(appState: appState)
+          .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .leading)))
       } else if !authViewModel.isAuthenticated {
         AuthenticationView(viewModel: authViewModel)
+          .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
       } else if authViewModel.isLoading {
         ProgressView("Loading...")
       } else if dataManager.currentSeller == nil {
         CreateFarmView(dataManager: dataManager)
       } else {
         AdaptiveContentView(container: container)
+          .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .trailing)))
       }
     }
     .onChange(of: authViewModel.isAuthenticated) { isAuthenticated in
