@@ -7,7 +7,7 @@ enum ActiveSheet: Identifiable, Hashable {
 
 struct ProfileView: View {
   @StateObject private var authViewModel: AuthenticationViewModel
-  @StateObject private var sellerViewModel: SellerViewModel
+  @StateObject private var dataManager: DataManager
   @State private var activeSheet: ActiveSheet?
   @State private var showingDeleteConfirmation = false
   @State private var showingFarmProducts = false
@@ -17,7 +17,7 @@ struct ProfileView: View {
   init(container: DependencyContainer) {
     self.container = container
     self._authViewModel = StateObject(wrappedValue: container.makeAuthenticationViewModel())
-    self._sellerViewModel = StateObject(wrappedValue: container.makeSellerViewModel())
+    self._dataManager = StateObject(wrappedValue: container.makeDataManager())
   }
 
   var body: some View {
@@ -32,7 +32,7 @@ struct ProfileView: View {
         }
 
         Section(header: Text("Farm Details")) {
-          if let seller = sellerViewModel.seller {
+          if let seller = dataManager.currentSeller {
             Text("Farm Name: \(seller.farmName)")
             Text("Description: \(seller.farmDescription)")
             Button("Edit Farm Details") {
@@ -69,11 +69,11 @@ struct ProfileView: View {
         case .changePassword:
           ChangePasswordView(viewModel: authViewModel)
         case .editFarm:
-          FarmDetailsView(viewModel: sellerViewModel)
+          FarmDetailsView(dataManager: dataManager)
         }
       }
       .fullScreenCover(isPresented: $showingFarmProducts) {
-        FarmProductsView(viewModel: sellerViewModel)
+        FarmProductsView(dataManager: dataManager)
       }
       .alert(isPresented: $showingDeleteConfirmation) {
         Alert(

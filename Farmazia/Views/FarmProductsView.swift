@@ -1,15 +1,17 @@
 import SwiftUI
+import Combine
 
 struct FarmProductsView: View {
-  @ObservedObject var viewModel: SellerViewModel
+  @ObservedObject var dataManager: DataManager
+  @Environment(\.dismiss) var dismiss
   @State private var showingProductForm = false
   @State private var productToEdit: ProductModel?
   @State private var searchText = ""
   @State private var selectedCategory: ProductCategory?
-  @Environment(\.dismiss) var dismiss
+  @State private var refreshTrigger = false
 
   private var filteredProducts: [ProductModel] {
-    viewModel.products.filter { product in
+    dataManager.products.filter { product in
       (searchText.isEmpty || product.name.localizedCaseInsensitiveContains(searchText)) &&
       (selectedCategory == nil || product.productType == selectedCategory)
     }
@@ -17,7 +19,7 @@ struct FarmProductsView: View {
 
   var body: some View {
     NavigationStack {
-      VStack(spacing: 0) {
+      VStack {
         categoryFilterView
 
         ScrollView {
@@ -56,25 +58,24 @@ struct FarmProductsView: View {
           }
         }
       }
-      .fullScreenCover(isPresented: $showingProductForm) {
-        CreateProductView(
-          sellerViewModel: viewModel,
-          storageManager: DependencyContainer().storageManager,
-          existingProduct: productToEdit,
-          shouldDismiss: $showingProductForm
-        )
-      }
-      .onChange(of: showingProductForm) { isPresented in
-        if !isPresented {
-          productToEdit = nil
-          Task {
-            await viewModel.loadSellerProducts()
+      .sheet(isPresented: Binding(
+        get: { showingProductForm },
+        set: { newValue in
+          showingProductForm = newValue
+          if !newValue {
+            Task {
+              await dataManager.loadSellerProducts()
+              refreshTrigger.toggle()
+            }
           }
         }
+      )) {
+        CreateProductView(existingProduct: productToEdit)
       }
+      .id(refreshTrigger)
     }
     .task {
-      await viewModel.loadSellerProducts()
+      await dataManager.loadSellerProducts()
     }
   }
 }
@@ -115,22 +116,23 @@ private extension FarmProductsView {
     .padding(.vertical, 8)
     .background(Color.gray.opacity(0.1))
   }
-
-  func deleteProduct(_ product: ProductModel) {
-    Task {
-      if let productId = product.id {
-        await viewModel.deleteProduct(withId: productId)
-      }
-    }
-  }
-
+  
   func editProduct(_ product: ProductModel) {
     productToEdit = product
     showingProductForm = true
   }
-
+  
   func addNewProduct() {
     productToEdit = nil
     showingProductForm = true
+  }
+  
+  func deleteProduct(_ product: ProductModel) {
+    Task {
+      if let productId = product.id {
+        try? await dataManager.deleteProduct(withId: productId)
+        await dataManager.loadSellerProducts()
+      }
+    }
   }
 }

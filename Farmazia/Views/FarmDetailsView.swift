@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct FarmDetailsView: View {
-  @ObservedObject var viewModel: SellerViewModel
-  @Environment(\.presentationMode) var presentationMode
+  @ObservedObject var dataManager: DataManager
+  @Environment(\.dismiss) var dismiss
   @State private var formState: FarmFormState
 
-  init(viewModel: SellerViewModel) {
-    self.viewModel = viewModel
-    _formState = State(initialValue: FarmFormState(seller: viewModel.seller))
+  init(dataManager: DataManager) {
+    self.dataManager = dataManager
+    _formState = State(initialValue: FarmFormState(seller: dataManager.currentSeller))
   }
 
   var body: some View {
@@ -45,8 +45,8 @@ struct FarmDetailsView: View {
   }
 
   private func saveChanges() {
-    Task {
-      await viewModel.createOrUpdateFarm(
+    
+      dataManager.createOrUpdateFarm(
         fullName: formState.fullName,
         email: formState.email,
         phoneNumber: formState.phoneNumber,
@@ -59,8 +59,8 @@ struct FarmDetailsView: View {
           postalCode: formState.postalCode
         )
       )
-      presentationMode.wrappedValue.dismiss()
-    }
+      dismiss()
+    
   }
 }
 

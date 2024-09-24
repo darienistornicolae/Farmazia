@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CreateFarmView: View {
-  @ObservedObject var viewModel: SellerViewModel
+  @ObservedObject var dataManager: DataManager
   @Environment(\.dismiss) var dismiss
 
   @State private var fullName: String = ""
@@ -46,11 +46,7 @@ struct CreateFarmView: View {
       }
     }
     .navigationTitle("Create Your Farm")
-    .onChange(of: viewModel.farmCreated) { created in
-      if created {
-        dismiss()
-      }
-    }
+   
   }
 
   func saveFarm() async {
@@ -61,7 +57,7 @@ struct CreateFarmView: View {
       postalCode: postalCode
     )
 
-    await viewModel.createOrUpdateFarm(
+    dataManager.createOrUpdateFarm(
       fullName: fullName,
       email: email,
       phoneNumber: phoneNumber,

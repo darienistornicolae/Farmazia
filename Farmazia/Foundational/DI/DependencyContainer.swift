@@ -33,11 +33,13 @@ class DependencyContainer {
     )
   }
 
-  func makeCreateProductViewModel(sellerViewModel: SellerViewModel) -> CreateProductViewModel {
-    CreateProductViewModel(sellerViewModel: sellerViewModel, storageManager: storageManager)
-  }
+  func makeDataManager() -> DataManager {
+         DataManager(
+             sellerService: sellerService,
+             authManager: authenticationManager,
+             productService: productService,
+             storageManager: storageManager
+         )
+     }
 
-  func makeSellerViewModel() -> SellerViewModel {
-    SellerViewModel(sellerService: sellerService, authManager: authenticationManager, productService: productService)
-  }
 }

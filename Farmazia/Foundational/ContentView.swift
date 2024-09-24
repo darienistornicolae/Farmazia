@@ -3,14 +3,14 @@ import SwiftUI
 struct ContentView: View {
   @ObservedObject var appState: AppState
   @StateObject private var authViewModel: AuthenticationViewModel
-  @StateObject private var sellerViewModel: SellerViewModel
+  @StateObject private var dataManager: DataManager
   let container: DependencyContainer
 
   init(container: DependencyContainer) {
     self.container = container
     self.appState = container.appState
     self._authViewModel = StateObject(wrappedValue: container.makeAuthenticationViewModel())
-    self._sellerViewModel = StateObject(wrappedValue: container.makeSellerViewModel())
+    self._dataManager = StateObject(wrappedValue: container.makeDataManager())
   }
 
   var body: some View {
@@ -21,17 +21,15 @@ struct ContentView: View {
         AuthenticationView(viewModel: authViewModel)
       } else if authViewModel.isLoading {
         ProgressView("Loading...")
-      } else if sellerViewModel.seller == nil {
-        CreateFarmView(viewModel: sellerViewModel)
+      } else if dataManager.currentSeller == nil {
+        CreateFarmView(dataManager: dataManager)
       } else {
         AdaptiveContentView(container: container)
       }
     }
-    .onChange(of: authViewModel.isAuthenticated || sellerViewModel.farmCreated) { isAuthenticated in
+    .onChange(of: authViewModel.isAuthenticated) { isAuthenticated in
       if isAuthenticated {
-        Task {
-          await sellerViewModel.loadCurrentSeller()
-        }
+        dataManager.loadCurrentSeller()
       }
     }
   }
