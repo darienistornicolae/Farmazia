@@ -25,7 +25,7 @@ struct CreateProductView: View {
   @State private var errorMessage: String?
 
   let existingProduct: ProductModel?
-  var isEditMode: Bool { existingProduct != nil }
+  var isEditMode: Bool = false
 
   init(existingProduct: ProductModel? = nil) {
     self.existingProduct = existingProduct

@@ -59,18 +59,22 @@ struct FarmProductsView: View {
       }
       .fullScreenCover(item: $productToEditOrAdd) { product in
         CreateProductView(existingProduct: product)
+          .environmentObject(dataManager)
       }
+
       .onReceive(dataManager.productUpdatePublisher) { _ in
-        refreshTrigger.toggle()
+        Task {
+          refreshTrigger.toggle()
+          await dataManager.loadSellerProducts()
+        }
       }
       .id(refreshTrigger)
     }
     .task {
       await dataManager.loadSellerProducts()
     }
-  }
+  }  
 }
-
 
 struct CategoryButton: View {
   let title: String
