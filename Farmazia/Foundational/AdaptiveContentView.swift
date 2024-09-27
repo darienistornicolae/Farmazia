@@ -37,7 +37,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
   func destination(container: DependencyContainer) -> some View {
     switch self {
     case .search:
-      CategoryListView(viewModel: container.makeCategoryListViewModel())
+      CategoryListView(container: container)
     case .shoppingCart:
       ShoppingCartView()
     case .profile:

@@ -10,7 +10,7 @@ struct TabBarController: View {
 
   var body: some View {
     TabView {
-      CategoryListView(viewModel: container.makeCategoryListViewModel())
+      CategoryListView(container: container)
         .tabItem {
           Label("Search", systemImage: "doc.text.magnifyingglass")
         }

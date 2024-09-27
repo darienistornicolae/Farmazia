@@ -8,9 +8,11 @@ enum ProductListDestination: Hashable {
 struct CategoryListView: View {
   @StateObject var viewModel: CategoryListViewModel
   @State private var path = NavigationPath()
+  private let container: DependencyContainer
 
-  init(viewModel: @autoclosure @escaping () -> CategoryListViewModel) {
-    self._viewModel = StateObject(wrappedValue: viewModel())
+  init(container: DependencyContainer) {
+    self.container = container
+    self._viewModel = StateObject(wrappedValue: container.makeCategoryListViewModel())
   }
 
   var body: some View {
@@ -36,13 +38,13 @@ struct CategoryListView: View {
       .navigationDestination(for: ProductListDestination.self) { destination in
         switch destination {
         case .allProducts:
-          ProductListView(viewModel: DependencyContainer().makeProductListViewModel())
+          ProductListView(viewModel: container.makeProductListViewModel())
         case .category(let category):
-          ProductListView(viewModel: DependencyContainer().makeProductListViewModel(category: category))
+          ProductListView(viewModel: container.makeProductListViewModel(category: category))
         }
       }
       .navigationDestination(for: ProductModel.self) { product in
-        ProductView(viewModel: DependencyContainer().makeProductViewModel(product: product))
+        ProductView(viewModel: container.makeProductViewModel(product: product))
       }
     }
   }
